@@ -40,4 +40,14 @@ describe Oyster do
       end
     end
   end
+
+  describe "#deduct_fare" do
+    it "deducts the fare amount from the balance" do
+      balance = 50
+      fare_amount = 20
+      @oyster = Oyster.new(balance, 1)
+      @oyster.deduct_fare(fare_amount)
+      expect(@oyster.balance).to equal(balance-fare_amount)
+    end
+  end
 end
