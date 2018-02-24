@@ -10,7 +10,6 @@ describe Oyster do
 
     it "takes two parameters and returns an oyster object" do
       oyster = Oyster.new(50, 1)
-      puts "oyster balance 50 #{oyster.balance}"
       expect(oyster).to be_instance_of(Oyster)
     end
 
@@ -49,5 +48,15 @@ describe Oyster do
       @oyster.deduct_fare(fare_amount)
       expect(@oyster.balance).to equal(balance-fare_amount)
     end
+  end
+
+  describe "#tap_in" do
+    oyster = Oyster.new(50, 1)
+    oyster.tap_in
+  end
+
+  describe "#tap_out" do
+    oyster = Oyster.new(50, 1)
+    oyster.tap_out
   end
 end

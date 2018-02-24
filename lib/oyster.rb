@@ -18,4 +18,10 @@ class Oyster
   def deduct_fare(amount)
     self.balance -= amount
   end
+
+  def tap_in
+  end
+
+  def tap_out
+  end
 end
