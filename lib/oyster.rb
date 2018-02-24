@@ -7,6 +7,11 @@ class Oyster
   end
 
   def top_up(amount)
-    self.balance += amount
+    max_top_up = 50
+    if amount > max_top_up
+      puts "You cannot top up your Oyster with an amount greater than #{max_top_up}"
+    else
+      self.balance += amount
+    end
   end
 end
