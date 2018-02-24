@@ -15,4 +15,17 @@ describe Oyster do
       expect { raise Oyster.new() }.to raise_error(ArgumentError)
     end
   end
+
+  describe "#top_up" do
+    context "with an oyster initialized with a zero balance" do
+      before(:each) do
+        @oyster = Oyster.new(customer_id: 1)
+      end
+      it "increases the balance by the top up amount" do
+        amount = 10
+        @oyster.top_up(amount)
+        expect(@oyster.balance).to equal(amount)
+      end
+    end
+  end
 end

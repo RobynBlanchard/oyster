@@ -5,4 +5,8 @@ class Oyster
     self.balance = balance
     self.customer_id = customer_id
   end
+
+  def top_up(amount)
+    self.balance += amount
+  end
 end
