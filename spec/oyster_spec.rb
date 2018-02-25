@@ -1,4 +1,3 @@
-# spec/oyster_spec.rb
 require "oyster"
 require "journey"
 
@@ -78,15 +77,22 @@ describe Oyster do
     balance = 50
     before(:each) do
       @oyster = Oyster.new(balance, 1)
+      @calculated_fare = rand(1.7...4.7)
+      @journey_history = {"start_zone"=>:start_zone, "end_zone"=>:end_zone, "fare"=>@calculated_fare}
+      allow_any_instance_of(Journey).to receive(:calculate_fare).and_return(@calculated_fare)
+      allow_any_instance_of(Journey).to receive(:save).and_return(@journey_history)
+      @oyster.tap_in(:start_zone)
+      @oyster.tap_out(:end_zone)
     end
 
     it "deducts a fare for the journey from the Oyster balance" do
-      calculated_fare = rand(1.7...4.7)
-      allow_any_instance_of(Journey).to receive(:calculate_fare).and_return(calculated_fare)
-      @oyster.tap_in(:start_zone)
-      @oyster.tap_out(:end_zone)
-      expected_balance = balance - calculated_fare
+      expected_balance = balance - @calculated_fare
       expect(@oyster.balance).to equal(expected_balance)
+    end
+
+    it "saves the journey to the trip history" do
+      expect(@oyster.trip_history.trips).to eq([@journey_history])
+      expect(@oyster.trip_history.customer_id).to eq(1)
     end
   end
 end

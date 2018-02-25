@@ -1,11 +1,12 @@
 require 'journey'
 class Oyster
 
-  attr_accessor :balance, :customer_id
+  attr_accessor :balance, :customer_id, :trip_history
 
   def initialize(balance=0, customer_id)
     self.balance = balance
     self.customer_id = customer_id
+    self.trip_history = TripHistory.new(customer_id)
   end
 
   def top_up(amount)
@@ -32,6 +33,7 @@ class Oyster
   def tap_out(end_zone)
     fare = @journey.calculate_fare(end_zone)
     deduct_fare(fare)
+    self.trip_history.save(@journey.start_zone, end_zone, fare)
   end
 
 end
