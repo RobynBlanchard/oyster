@@ -68,7 +68,7 @@ describe Oyster do
         oyster.tap_in(zone)
         balance = 5
         # allow(Journey).to receive(zone).and_return(new_journey)
-        #expect(Journey).to receive(:new).with(balance).and_return(new_journey)
+        # expect(Journey).to receive(:new).with(balance).and_return(new_journey)
       end
     end
   end
@@ -77,24 +77,41 @@ describe Oyster do
     let(:balance) { 50 }
     let(:customer_id) { 1 }
     let(:oyster) { Oyster.new(balance, customer_id)}
-    let(:calculated_fare) { rand(1.7...4.7) }
-    let(:journey_history) { {"start_zone"=>:start_zone, "end_zone"=>:end_zone, "fare"=>calculated_fare} }
 
-    before(:each) do
-      allow_any_instance_of(Journey).to receive(:calculate_fare).and_return(calculated_fare)
-      allow_any_instance_of(Journey).to receive(:save).and_return(journey_history)
-      oyster.tap_in(:start_zone)
-      oyster.tap_out(:end_zone)
+
+    context "customer tapped in" do
+      # let(:calculated_fare) { rand(1.7...4.7) }
+      let(:journey_history) { {"start_zone"=>:start_zone, "end_zone"=>:end_zone, "fare"=>calculated_fare} }
+      let(:calculated_fare) { rand(1.7...4.7) }
+      before(:each) do
+        allow_any_instance_of(Journey).to receive(:calculate_fare).and_return(calculated_fare)
+        allow_any_instance_of(Journey).to receive(:save).and_return(journey_history)
+        oyster.tap_in(:start_zone)
+        oyster.tap_out(:end_zone)
+      end
+
+      it "deducts a fare for the journey from the Oyster balance" do
+        expected_balance = balance - calculated_fare
+        expect(oyster.balance).to equal(expected_balance)
+      end
+
+      it "saves the journey to the trip history" do
+        expect(oyster.trip_history.trips).to eq([journey_history])
+        expect(oyster.trip_history.customer_id).to eq(customer_id)
+      end
     end
 
-    it "deducts a fare for the journey from the Oyster balance" do
-      expected_balance = balance - calculated_fare
-      expect(oyster.balance).to equal(expected_balance)
-    end
+    context "customer failed to tap in" do
+      let(:journey) { Journey.new(balance, 1)}
+      let(:calculated_fare) { 2.4 }
 
-    it "saves the journey to the trip history" do
-      expect(oyster.trip_history.trips).to eq([journey_history])
-      expect(oyster.trip_history.customer_id).to eq(customer_id)
+      it "applies a penalty fare" do
+        oyster.tap_out(1)
+        allow_any_instance_of(Journey).to receive(:new).and_return(journey)
+        allow_any_instance_of(Journey).to receive(:calculate_fare).and_return(calculated_fare)
+        expected_balance = balance - (Journey.penalty_fare + calculated_fare)
+        expect(oyster.balance).to eq(expected_balance)
+      end
     end
   end
 end

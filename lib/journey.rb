@@ -10,6 +10,10 @@ class Journey
     1.7
   end
 
+  def self.penalty_fare
+    5
+  end
+
   def calculate_fare(end_zone)
     zone_fares =  [
                   [2.4, 2.9, 3.3, 3.9, 4.7],
@@ -21,7 +25,4 @@ class Journey
 
     zone_fares[self.start_zone - 1][end_zone -1]
   end
-
-
-
 end

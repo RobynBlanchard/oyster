@@ -22,6 +22,7 @@ class Oyster
     self.balance -= amount
   end
 
+  # elsif tap in and didnt tap out - apply penalty fare
   def tap_in(start_zone)
     if self.balance < ::Journey.minimum_fare
      puts "Top up Oyster Card"
@@ -30,10 +31,30 @@ class Oyster
     end
   end
 
+  # if no @journey.nil then penalty fare
   def tap_out(end_zone)
+    if @journey.nil?
+      fare = apply_penalty_fare(end_zone)
+      self.trip_history.save(@journey.start_zone, end_zone, fare)
+    else
+      fare = apply_non_penalty_fare(end_zone)
+      self.trip_history.save(@journey.start_zone, end_zone, fare)
+    end
+  end
+
+  private
+
+  def apply_penalty_fare(end_zone)
+    @journey = Journey.new(self.balance, end_zone)
+    fare = @journey.calculate_fare(end_zone) + Journey.penalty_fare
+    deduct_fare(fare)
+    fare
+  end
+
+  def apply_non_penalty_fare(end_zone)
     fare = @journey.calculate_fare(end_zone)
     deduct_fare(fare)
-    self.trip_history.save(@journey.start_zone, end_zone, fare)
+    fare
   end
 
 end
