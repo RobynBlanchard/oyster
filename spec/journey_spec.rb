@@ -11,9 +11,9 @@ describe Journey do
   end
 
   describe '.minimum_fare' do
-    it "returns an integer" do
+    it "returns a Float" do
       result = Journey.minimum_fare
-      expect(result).to eq(1.7)
+      expect(result).to be_an_instance_of(Float)
     end
   end
 
