@@ -78,12 +78,14 @@ describe Oyster do
     balance = 50
     before(:each) do
       @oyster = Oyster.new(balance, 1)
-      @oyster.tap_in(:zone)
     end
 
     it "deducts a fare for the journey from the Oyster balance" do
-      @oyster.tap_out(:zone)
-      expected_balance = balance - Journey.single_fare
+      calculated_fare = rand(1.7...4.7)
+      allow_any_instance_of(Journey).to receive(:calculate_fare).and_return(calculated_fare)
+      @oyster.tap_in(:start_zone)
+      @oyster.tap_out(:end_zone)
+      expected_balance = balance - calculated_fare
       expect(@oyster.balance).to equal(expected_balance)
     end
   end

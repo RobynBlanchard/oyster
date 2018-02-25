@@ -21,16 +21,16 @@ class Oyster
     self.balance -= amount
   end
 
-  def tap_in(zone)
+  def tap_in(start_zone)
     if self.balance < ::Journey.minimum_fare
      puts "Top up Oyster Card"
     else
-      @j = Journey.new(self.balance, zone)
+      @journey = Journey.new(self.balance, start_zone)
     end
   end
 
-  def tap_out(zone)
-    fare = @j.calculate_fare(zone)
+  def tap_out(end_zone)
+    fare = @journey.calculate_fare(end_zone)
     deduct_fare(fare)
   end
 
