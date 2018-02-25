@@ -1,4 +1,6 @@
+require 'journey'
 class Oyster
+
   attr_accessor :balance, :customer_id
 
   def initialize(balance=0, customer_id)
@@ -20,6 +22,11 @@ class Oyster
   end
 
   def tap_in
+    if self.balance < ::Journey.minimum_fare
+      puts "Top up Oyster Card"
+    else
+      j = Journey.new(self.balance)
+    end
   end
 
   def tap_out

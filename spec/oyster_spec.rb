@@ -1,5 +1,6 @@
 # spec/oyster_spec.rb
 require "oyster"
+require "journey"
 
 describe Oyster do
   describe "#new" do
@@ -51,8 +52,20 @@ describe Oyster do
   end
 
   describe "#tap_in" do
-    oyster = Oyster.new(50, 1)
-    oyster.tap_in
+    let(:new_journey) { double(:journey) }
+
+    it "does not tap in if balance is less than minimum fare" do
+      oyster = Oyster.new(0, 1)
+      oyster.tap_in
+    end
+
+    it "does tap in if balance is not less than minimum fare" do
+      oyster = Oyster.new(5, 1)
+      oyster.tap_in
+      balance = 5
+      allow(Journey).to receive(:balance).and_return(:new_journey)
+      #expect(Journey).to receive(:new).with(balance).and_return(:new_journey)
+    end
   end
 
   describe "#tap_out" do
