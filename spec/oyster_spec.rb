@@ -53,23 +53,38 @@ describe Oyster do
 
   describe "#tap_in" do
     let(:new_journey) { double(:journey) }
+    let(:zone) { 1 }
 
-    it "does not tap in if balance is less than minimum fare" do
-      oyster = Oyster.new(0, 1)
-      oyster.tap_in
+    context "oyster balance is less than the minimum fare" do
+      it "does not create a new journey" do
+        oyster = Oyster.new(0, 1)
+        oyster.tap_in(:zone)
+        # add expectation
+      end
     end
 
-    it "does tap in if balance is not less than minimum fare" do
-      oyster = Oyster.new(5, 1)
-      oyster.tap_in
-      balance = 5
-      allow(Journey).to receive(:balance).and_return(:new_journey)
-      #expect(Journey).to receive(:new).with(balance).and_return(:new_journey)
+    context "oyster balance is greater than the minimum fare" do
+      it "creates a new journey" do
+        oyster = Oyster.new(5, 1)
+        oyster.tap_in(:zone)
+        balance = 5
+        allow(Journey).to receive(:zone).and_return(:new_journey)
+        #expect(Journey).to receive(:new).with(balance).and_return(:new_journey)
+      end
     end
   end
 
   describe "#tap_out" do
-    oyster = Oyster.new(50, 1)
-    oyster.tap_out
+    balance = 50
+    before(:each) do
+      @oyster = Oyster.new(balance, 1)
+      @oyster.tap_in(:zone)
+    end
+
+    it "deducts a fare for the journey from the Oyster balance" do
+      @oyster.tap_out(:zone)
+      expected_balance = balance - Journey.single_fare
+      expect(@oyster.balance).to equal(expected_balance)
+    end
   end
 end
