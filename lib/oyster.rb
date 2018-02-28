@@ -24,10 +24,14 @@ class Oyster
 
   # elsif tap in and didnt tap out - apply penalty fare
   def tap_in(start_zone)
-    if self.balance < ::Journey.minimum_fare
-     puts "Top up Oyster Card"
+    if @journey.nil?
+      if self.balance < ::Journey.minimum_fare
+       puts "Top up Oyster Card"
+      else
+        @journey = Journey.new(self.balance, start_zone)
+      end
     else
-      @journey = Journey.new(self.balance, start_zone)
+
     end
   end
 
