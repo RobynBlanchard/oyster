@@ -31,21 +31,32 @@ class Oyster
     end
   end
 
-  def tap_out(journey, end_zone)
-    fare = end_journey(journey, end_zone)
-    deduct_fare(fare)
-    @trip_history.save(journey)
+  def tap_out(end_zone)
+    end_journey(end_zone)
+
   end
 
   private
 
   def start_journey(start_zone)
-    #journey nil?
-    journey = Journey.new(start_zone)
+    if !@journey.nil? && @journey.end_zone.nil?
+      # end journey applying penalty fare
+    else
+      @journey = Journey.new(start_zone)
+    end
   end
 
-  def end_journey(journey, end_zone)
-    fare = journey.calculate_fare(end_zone)
+  def end_journey(end_zone)
+    if @journey.nil?
+      journey = Journey.new(end_zone)
+      fare = journey.calculate_penalty_fare(end_zone)
+      deduct_fare(fare)
+      @trip_history.save(journey)
+    else
+      fare = @journey.calculate_fare(end_zone)
+      deduct_fare(fare)
+      @trip_history.save(@journey)
+    end
   end
 
 
