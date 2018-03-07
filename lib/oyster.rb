@@ -1,22 +1,32 @@
 require './lib/journey'
-require './lib/trip_history'
+# require './lib/trip_history'
+
+class MaxTopUpError < StandardError
+  def initialize
+    super("You cannot top up your Oyster with that much!")
+  end
+end
+
+class BalanceBelowRequiredError < StandardError
+  def initialize
+    super("Please top up!")
+  end
+end
+
 
 class Oyster
-
   MAX_TOP_UP = 50
   MINIMUM_FARE = 1.7
 
-  attr_reader :balance, :customer_id, :trip_history
+  attr_reader :balance, :journey
 
-  def initialize(balance=0, customer_id)
+  def initialize(balance: 0)
     @balance = balance
-    @customer_id = customer_id
-    @trip_history = TripHistory.new(customer_id)
   end
 
   def top_up(amount)
     if amount > MAX_TOP_UP
-      raise "You cannot top up your Oyster with an amount greater than #{max_top_up}"
+      raise MaxTopUpError.new
     else
       @balance += amount
     end
@@ -25,7 +35,7 @@ class Oyster
   # elsif tap in and didnt tap out - apply penalty fare
   def tap_in(start_zone)
     if balance < MINIMUM_FARE
-     raise "Top up Oyster Card"
+     raise BalanceBelowRequiredError.new
     else
       start_journey(start_zone)
     end
@@ -33,29 +43,27 @@ class Oyster
 
   def tap_out(end_zone)
     end_journey(end_zone)
-
+    # @journey = nil
   end
 
   private
 
   def start_journey(start_zone)
-    if !@journey.nil? && @journey.end_zone.nil?
-      # end journey applying penalty fare
+    if @journey.nil?
+      @journey = Journey.new(start_zone: start_zone)
     else
-      @journey = Journey.new(start_zone)
+      # end journey applying penalty fare
     end
   end
 
   def end_journey(end_zone)
     if @journey.nil?
-      journey = Journey.new(end_zone)
+      journey = Journey.new(start_zone: end_zone)
       fare = journey.calculate_penalty_fare(end_zone)
       deduct_fare(fare)
-      @trip_history.save(journey)
     else
       fare = @journey.calculate_fare(end_zone)
       deduct_fare(fare)
-      @trip_history.save(@journey)
     end
   end
 

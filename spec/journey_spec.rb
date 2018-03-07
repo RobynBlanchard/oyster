@@ -1,48 +1,37 @@
 require "journey"
 
 describe Journey do
-  describe '#new' do
+  let(:balance) { 50 }
+  let(:start_zone) { 1 }
+  let(:end_zone) { 3 }
+
+  subject { described_class.new(start_zone: start_zone) }
+
+  describe "#new" do
     it "takes two parameters and returns a journey object" do
-      balance = 50
-      start_zone = rand(1...5)
-      journey = Journey.new(balance, start_zone)
-      expect(journey).to be_instance_of(Journey)
+      expect(subject).to be_instance_of(described_class)
     end
   end
 
-  describe '.minimum_fare' do
-    it "returns a Float" do
-      result = Journey.minimum_fare
-      expect(result).to be_an_instance_of(Float)
-    end
-  end
+  describe "#calculate_fare" do
+    let(:fare) { subject.calculate_fare(end_zone) }
 
-  describe '#calculate_fare' do
     it "calculates the fare given two zones (1 and 3)" do
-      balance = 50
-      start_zone = 1
-      end_zone = 3
-      journey = Journey.new(balance, start_zone)
-      fare = journey.calculate_fare(end_zone)
-      expect(fare).to equal(3.3)
+      expect(fare).to eq(3.3)
     end
 
-    it "calculates the fare given two zones (1 and 1)" do
-      balance = 50
-      start_zone = 1
-      end_zone = 1
-      journey = Journey.new(balance, start_zone)
-      fare = journey.calculate_fare(end_zone)
-      expect(fare).to equal(2.4)
-    end
+    context "between 1 and 1" do
+      let(:end_zone) { 1 }
 
-    it "calculates the fare given two zones (2 and 5)" do
-      balance = 50
-      start_zone = 2
-      end_zone = 5
-      journey = Journey.new(balance, start_zone)
-      fare = journey.calculate_fare(end_zone)
-      expect(fare).to equal(2.8)
+      it "calculates the fare given two zones (1 and 1)" do
+        expect(fare).to equal(2.4)
+      end
     end
+  end
+
+  describe "#calculate_penalty_fare" do
+    let(:fare) { subject.calculate_penaltry_fare(end_zone) }
+
+    #TODO
   end
 end

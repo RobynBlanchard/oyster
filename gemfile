@@ -5,3 +5,4 @@ gem "rspec"
 
 # Added at 2018-02-24 14:55:55 +0000 by robynb:
 gem "byebug", "~> 10.0", :groups => [:development, :test]
+gem "pry"
