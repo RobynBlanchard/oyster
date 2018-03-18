@@ -1,15 +1,13 @@
 class TripHistory
   PENALTY_FARE = 5
 
-  attr_accessor :customer_id, :trips
+  attr_accessor :journeys
 
-  def initialize(customer_id, trips=[])
-    self.customer_id = customer_id
-    self.trips = trips
+  def initialize(journeys=[])
+    @journeys = journeys
   end
 
-  def save(journey)
-    #self.trips << {"start_zone"=>start_zone, "end_zone"=>end_zone, "fare"=>fare}
-    @trips << journey
+  def add(journey)
+    journeys << journey
   end
 end

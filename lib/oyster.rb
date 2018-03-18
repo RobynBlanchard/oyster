@@ -1,64 +1,68 @@
 require './lib/journey'
-require './lib/trip_history'
+ require './lib/journey_history'
+
+class MaxTopUpError < StandardError
+  def initialize
+    super("Maximum top up is 50")
+  end
+end
+
+class BalanceBelowRequiredError < StandardError
+  def initialize
+    super("Please top up")
+  end
+end
 
 class Oyster
 
   MAX_TOP_UP = 50
   MINIMUM_FARE = 1.7
 
-  attr_reader :balance, :customer_id, :trip_history
+  attr_reader :balance, :journey_history, :journey
 
-  def initialize(balance=0, customer_id)
+  def initialize(balance: 0)
     @balance = balance
-    @customer_id = customer_id
-    @trip_history = TripHistory.new(customer_id)
+    @journey_history = JourneyHistory.new()
   end
 
   def top_up(amount)
     if amount > MAX_TOP_UP
-      raise "You cannot top up your Oyster with an amount greater than #{max_top_up}"
+      raise MaxTopUpError.new
     else
       @balance += amount
     end
   end
 
-  # elsif tap in and didnt tap out - apply penalty fare
   def tap_in(start_zone)
-    if balance < MINIMUM_FARE
-     raise "Top up Oyster Card"
+    if balance.to_f < MINIMUM_FARE
+     raise BalanceBelowRequiredError.new
     else
       start_journey(start_zone)
     end
   end
 
   def tap_out(end_zone)
-    end_journey(end_zone)
-
+    fare = end_journey(end_zone)
+    deduct_fare(fare)
+    @journey_history.add(@journey)
+    @journey = nil
   end
 
   private
 
   def start_journey(start_zone)
-    if !@journey.nil? && @journey.end_zone.nil?
-      # end journey applying penalty fare
-    else
-      @journey = Journey.new(start_zone)
+    unless @journey.nil?
+      tap_out(nil)
     end
+    @journey  = Journey.new(start_zone)
   end
 
   def end_journey(end_zone)
     if @journey.nil?
-      journey = Journey.new(end_zone)
-      fare = journey.calculate_penalty_fare(end_zone)
-      deduct_fare(fare)
-      @trip_history.save(journey)
-    else
-      fare = @journey.calculate_fare(end_zone)
-      deduct_fare(fare)
-      @trip_history.save(@journey)
+      @journey = Journey.new(nil)
     end
+    @journey.end_journey(end_zone)
   end
-
 
   def deduct_fare(amount)
     @balance -= amount
