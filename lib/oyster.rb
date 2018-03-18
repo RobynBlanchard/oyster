@@ -44,8 +44,7 @@ class Oyster
   def tap_out(end_zone)
     fare = end_journey(end_zone)
     deduct_fare(fare)
-    @journey_history.add(@journey)
-    @journey = nil
+    save_journey
   end
 
   private
@@ -66,5 +65,10 @@ class Oyster
 
   def deduct_fare(amount)
     @balance -= amount
+  end
+
+  def save_journey
+    @journey_history.add(@journey)
+    @journey = nil
   end
 end
