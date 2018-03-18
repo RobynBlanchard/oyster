@@ -50,15 +50,15 @@ describe Oyster do
 
     context "customer has no incomplete prior journeys" do
       it "creates a journey" do
-        subject.tap_in(zone)
+        subject.tap_in(start_zone: zone)
         expect(subject.journey).to be_truthy
       end
     end
 
     context "customer did not tap out on previous journey" do
       before(:each) do
-        subject.tap_in(zone)
-        subject.tap_in(zone)
+        subject.tap_in(start_zone: zone)
+        subject.tap_in(start_zone: zone)
       end
 
       it "adds a journey to the journey history with nil as the end zone" do
@@ -82,7 +82,7 @@ describe Oyster do
 
       before(:each) do
         allow(subject).to receive(:end_journey).and_return(calculated_fare)
-        subject.tap_in(start_zone)
+        subject.tap_in(start_zone: start_zone)
         subject.tap_out(end_zone)
       end
 
@@ -105,7 +105,7 @@ describe Oyster do
 
       before(:each) do
         allow(subject).to receive(:end_journey).and_return(calculated_fare)
-        subject.tap_in(start_zone)
+        subject.tap_in(start_zone: start_zone)
         subject.tap_out(end_zone)
       end
 
