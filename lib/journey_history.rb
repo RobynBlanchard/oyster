@@ -1,4 +1,5 @@
 class JourneyHistory
+  
   PENALTY_FARE = 5
 
   attr_accessor :journeys
