@@ -1,37 +1,73 @@
 require "journey"
 
 describe Journey do
-  let(:balance) { 50 }
   let(:start_zone) { 1 }
   let(:end_zone) { 3 }
+  let(:fare) { 5 }
 
   subject { described_class.new(start_zone: start_zone) }
 
   describe "#new" do
-    it "takes two parameters and returns a journey object" do
+    it "accepts a start zone at creation" do
       expect(subject).to be_instance_of(described_class)
     end
   end
 
-  describe "#calculate_fare" do
-    let(:fare) { subject.calculate_fare(end_zone) }
-
-    it "calculates the fare given two zones (1 and 3)" do
-      expect(fare).to eq(3.3)
+  describe "#end_journey" do
+    before(:each) do
+      allow(subject).to receive(:calculate_fare).and_return(fare)
     end
 
-    context "between 1 and 1" do
-      let(:end_zone) { 1 }
+    context "start zone is nil" do
+      let(:start_zone) { nil }
 
-      it "calculates the fare given two zones (1 and 1)" do
-        expect(fare).to equal(2.4)
+      it "returns a fare with a penalty" do
+        expect(subject.end_journey(end_zone)).to eq fare + 4.7
+      end
+
+      it "sets the journey end_zone value" do
+        subject.end_journey(end_zone)
+        expect(subject.end_zone).to eq(end_zone)
+      end
+
+      it "sets the journey fare value" do
+        subject.end_journey(end_zone)
+        expect(subject.fare).to eq(fare + 4.7)
+      end
+    end
+
+    context "end zone is nil" do
+      let(:end_zone) { nil }
+
+      it "returns a fare with a penalty" do
+        expect(subject.end_journey(end_zone)).to eq fare + 4.7
+      end
+
+      it "sets the journey end_zone value" do
+        subject.end_journey(end_zone)
+        expect(subject.end_zone).to be_nil
+      end
+
+      it "sets the journey fare value" do
+        subject.end_journey(end_zone)
+        expect(subject.fare).to eq(fare + 4.7)
+      end
+    end
+
+    context "start zone and end zone are not nil" do
+      it "returns a non penalty fare" do
+        expect(subject.end_journey(end_zone)).to eq fare
+      end
+
+      it "sets the journey end_zone value" do
+        subject.end_journey(end_zone)
+        expect(subject.end_zone).to eq(end_zone)
+      end
+
+      it "sets the journey fare value" do
+        subject.end_journey(end_zone)
+        expect(subject.fare).to eq(fare)
       end
     end
   end
-
-  # describe "#calculate_penalty_fare" do
-  #   # let(:fare) { subject.calculate_penaltry_fare(end_zone) }
-  #
-  #   #TODO
-  # end
 end

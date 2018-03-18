@@ -12,33 +12,29 @@ class Journey
 
   attr_reader :start_zone, :end_zone, :fare
 
-  def initialize(start_zone)
+  def initialize(start_zone: start_zone)
     @start_zone = start_zone
   end
 
   def end_journey(end_zone)
+    fare = calculate_fare(start_zone, end_zone)
     if end_zone.nil? || start_zone.nil?
-      calculate_penalty_fare(end_zone)
-    else
-      calculate_fare(end_zone)
+      fare += PENALTY_FARE
     end
+    set_journey_values(end_zone, fare)
   end
 
   private
 
-  def calculate_fare(end_zone)
-    fare = ZONE_FARES[@start_zone - 1][end_zone -1]
-    @end_zone = end_zone
-    @fare = fare
+  # If the start or end zone is not known then the fare is calculated by
+  # caulcating the most expensive possible journey from the given zone
+  def calculate_fare(start_zone=nil, end_zone=nil)
+    start_zone ||= 1
+    end_zone ||= 1
+    fare = ZONE_FARES[start_zone - 1][end_zone - 1]
   end
 
-  def calculate_penalty_fare(end_zone)
-    if @start_zone.nil?
-      # TODO - change use of end_zone here - calculate max fare from endzone
-      fare = ZONE_FARES[end_zone - 1][end_zone -1] + PENALTY_FARE
-    elsif end_zone.nil?
-      fare = ZONE_FARES[@start_zone - 1][@start_zone -1] + PENALTY_FARE
-    end
+  def set_journey_values(end_zone, fare)
     @end_zone = end_zone
     @fare = fare
   end
