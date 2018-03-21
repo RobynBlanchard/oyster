@@ -1,3 +1,27 @@
+## Example usage
+
+Require the file
+`require './lib/oyster'`
+
+Create a new Oyster
+`$ o = Oyster.new(balance: 50)`
+
+Top up by 5
+`$ o.top_up(5)`
+
+Tap in and Tap out accept a start and end zone respectively. A zone is an integer between 1 and 5.
+
+Tap in at zone 1
+`$ o.tap_in(1)`
+
+Tap out at zone 5
+`$ o.tap_out(5)`
+
+Access the Oyster's journey history
+`$ o.journey_history`
+
+
+
 ## The Brief
 
 In order to use public transport
