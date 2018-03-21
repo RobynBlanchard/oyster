@@ -1,64 +1,63 @@
-require 'journey'
+require './lib/journey'
+require './lib/journey_history'
+require './lib/errors'
+
 class Oyster
 
-  attr_accessor :balance, :customer_id, :trip_history
+  MAX_TOP_UP = 50
+  MINIMUM_FARE = 1.7
 
-  def initialize(balance=0, customer_id)
-    self.balance = balance
-    self.customer_id = customer_id
-    self.trip_history = TripHistory.new(customer_id)
+  attr_reader :balance, :journey_history, :journey
+
+  def initialize(balance: 0)
+    @balance = balance
+    @journey_history = JourneyHistory.new()
   end
 
   def top_up(amount)
-    max_top_up = 50
-    if amount > max_top_up
-      puts "You cannot top up your Oyster with an amount greater than #{max_top_up}"
+    if amount > MAX_TOP_UP
+      raise MaxTopUpError.new
     else
-      self.balance += amount
+      @balance += amount
     end
   end
 
-  def deduct_fare(amount)
-    self.balance -= amount
-  end
-
-  # elsif tap in and didnt tap out - apply penalty fare
   def tap_in(start_zone)
-    if @journey.nil?
-      if self.balance < ::Journey.minimum_fare
-       puts "Top up Oyster Card"
-      else
-        @journey = Journey.new(self.balance, start_zone)
-      end
+    if balance.to_f < MINIMUM_FARE
+     raise BalanceBelowRequiredError.new
     else
-
+      start_journey(start_zone)
     end
   end
 
-  # if no @journey.nil then penalty fare
   def tap_out(end_zone)
-    if @journey.nil?
-      fare = apply_penalty_fare(end_zone)
-      self.trip_history.save(@journey.start_zone, end_zone, fare)
-    else
-      fare = apply_non_penalty_fare(end_zone)
-      self.trip_history.save(@journey.start_zone, end_zone, fare)
-    end
+    fare = end_journey(end_zone)
+    deduct_fare(fare)
+    save_journey
   end
 
   private
 
-  def apply_penalty_fare(end_zone)
-    @journey = Journey.new(self.balance, end_zone)
-    fare = @journey.calculate_fare(end_zone) + Journey.penalty_fare
-    deduct_fare(fare)
-    fare
+  def start_journey(start_zone)
+    unless @journey.nil?
+      tap_out(nil)
+    end
+    @journey  = Journey.new(start_zone: start_zone)
   end
 
-  def apply_non_penalty_fare(end_zone)
-    fare = @journey.calculate_fare(end_zone)
-    deduct_fare(fare)
-    fare
+  def end_journey(end_zone)
+    if @journey.nil?
+      @journey = Journey.new(start_zone: nil)
+    end
+    @journey.end_journey(end_zone)
   end
 
+  def deduct_fare(amount)
+    @balance -= amount
+  end
+
+  def save_journey
+    @journey_history.add(@journey)
+    @journey = nil
+  end
 end

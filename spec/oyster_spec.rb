@@ -2,115 +2,123 @@ require "oyster"
 require "journey"
 
 describe Oyster do
+  let(:balance) { 0 }
+  subject { described_class.new(balance: balance) }
+
   describe "#new" do
-    it "takes one customer parameter and returns an oyster object" do
-      oyster = Oyster.new(1)
-      expect(oyster).to be_instance_of(Oyster)
+    it "defaults the balance to zero" do
+      oyster = described_class.new
+      expect(oyster.balance).to eq 0
     end
 
-    it "takes two parameters and returns an oyster object" do
-      oyster = Oyster.new(50, 1)
-      expect(oyster).to be_instance_of(Oyster)
-    end
+    let(:balance) { 40 }
 
-    it "takes no parameters and returns an error" do
-      expect { raise Oyster.new() }.to raise_error(ArgumentError)
+    it "accepts a balance at creation" do
+      expect(subject.balance).to eq 40
     end
   end
 
   describe "#top_up" do
-    let(:oyster) { Oyster.new(1) }
-
     context "top up amount is less than max top up amount" do
+      let(:amount) { 40 }
+
       it "increases the Oyster balance" do
-        amount = rand(0..50)
-        oyster.top_up(amount)
-        expect(oyster.balance).to equal(amount)
+        subject.top_up(amount)
+        expect(subject.balance).to equal(amount)
       end
     end
 
     context "top up amount is greater than max top up amount" do
+      let(:amount) { 55 }
+
       it "does not increase the Oyster balance" do
-        amount = rand(51..999)
-        oyster.top_up(amount)
-        expect(oyster.balance).to equal(0)
+        expect { subject.top_up(amount) }.to raise_error(MaxTopUpError)
       end
-    end
-  end
-
-  describe "#deduct_fare" do
-    it "deducts the fare amount from the balance" do
-      balance = 50
-      fare_amount = 20
-      customer_id = 1
-      oyster = Oyster.new(balance, customer_id)
-
-      oyster.deduct_fare(fare_amount)
-      expect(oyster.balance).to equal(balance-fare_amount)
     end
   end
 
   describe "#tap_in" do
-    let(:new_journey) { double(:journey) }
-    let(:zone) { 1 }
+    let(:balance) { 40 }
+    let(:start_zone) { 1 }
 
     context "oyster balance is less than the minimum fare" do
-      it "does not create a new journey" do
-        oyster = Oyster.new(0, 1)
-        oyster.tap_in(zone)
-        # add expectation
+      let(:balance) { 0 }
+      it "raises an BalanceBelowRequiredError" do
+        expect { subject.tap_in(start_zone) }.to raise_error(BalanceBelowRequiredError)
       end
     end
 
-    context "oyster balance is greater than the minimum fare" do
-      it "creates a new journey" do
-        oyster = Oyster.new(5, 1)
-        oyster.tap_in(zone)
-        balance = 5
-        # allow(Journey).to receive(zone).and_return(new_journey)
-        # expect(Journey).to receive(:new).with(balance).and_return(new_journey)
+    context "customer has no incomplete prior journeys" do
+      it "creates a journey" do
+        subject.tap_in(start_zone)
+        expect(subject.journey).to be_truthy
       end
     end
-  end
+
+    context "customer did not tap out on previous journey" do
+      before(:each) do
+        subject.tap_in(start_zone)
+        subject.tap_in(start_zone)
+      end
+
+      it "adds a journey to the journey history with nil as the end zone" do
+        expect(subject.journey_history.journeys.count).to eq 1
+        expect(subject.journey_history.journeys.first.end_zone).to be_nil
+      end
+
+      it "creates a new journey" do
+        expect(subject.journey).to be_truthy
+      end
+    end
+   end
 
   describe "#tap_out" do
     let(:balance) { 50 }
-    let(:customer_id) { 1 }
-    let(:oyster) { Oyster.new(balance, customer_id)}
+    let(:end_zone) { 4 }
 
+    context "a valid journey with no prior journeys" do
+      let(:start_zone) { 1 }
+      let(:calculated_fare) { 2 }
 
-    context "customer tapped in" do
-      # let(:calculated_fare) { rand(1.7...4.7) }
-      let(:journey_history) { {"start_zone"=>:start_zone, "end_zone"=>:end_zone, "fare"=>calculated_fare} }
-      let(:calculated_fare) { rand(1.7...4.7) }
       before(:each) do
-        allow_any_instance_of(Journey).to receive(:calculate_fare).and_return(calculated_fare)
-        allow_any_instance_of(Journey).to receive(:save).and_return(journey_history)
-        oyster.tap_in(:start_zone)
-        oyster.tap_out(:end_zone)
+        allow(subject).to receive(:end_journey).and_return(calculated_fare)
+        subject.tap_in(start_zone)
+        subject.tap_out(end_zone)
       end
 
       it "deducts a fare for the journey from the Oyster balance" do
-        expected_balance = balance - calculated_fare
-        expect(oyster.balance).to equal(expected_balance)
+        expect(subject.balance).to eq 48
       end
 
-      it "saves the journey to the trip history" do
-        expect(oyster.trip_history.trips).to eq([journey_history])
-        expect(oyster.trip_history.customer_id).to eq(customer_id)
+      it "adds a journey to the journey history" do
+        expect(subject.journey_history.journeys.count).to eq 1
+      end
+
+      it "sets the instance of Journey to nil" do
+        expect(subject.journey).to be_nil
       end
     end
 
     context "customer failed to tap in" do
-      let(:journey) { Journey.new(balance, 1)}
-      let(:calculated_fare) { 2.4 }
+      let(:start_zone) { nil }
+      let(:calculated_fare) { 5 }
 
-      it "applies a penalty fare" do
-        oyster.tap_out(1)
-        allow_any_instance_of(Journey).to receive(:new).and_return(journey)
-        allow_any_instance_of(Journey).to receive(:calculate_fare).and_return(calculated_fare)
-        expected_balance = balance - (Journey.penalty_fare + calculated_fare)
-        expect(oyster.balance).to eq(expected_balance)
+      before(:each) do
+        allow(subject).to receive(:end_journey).and_return(calculated_fare)
+        subject.tap_in(start_zone: start_zone)
+        subject.tap_out(end_zone)
+      end
+
+      it "deducts a fare for the journey from the Oyster balance" do
+        expect(subject.balance).to eq 45
+      end
+
+      it "adds a journey to the journey history" do
+        expect(subject.journey_history.journeys.count).to eq 1
+      end
+
+      it "sets the instance of Journey to nil" do
+        expect(subject.journey).to be_nil
       end
     end
   end
