@@ -9,7 +9,7 @@ describe Journey do
 
   describe "#new" do
     it "accepts a start zone at creation" do
-      expect(subject).to be_instance_of(described_class)
+      expect(subject.start_zone).to eq start_zone
     end
   end
 

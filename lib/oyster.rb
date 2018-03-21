@@ -1,17 +1,6 @@
 require './lib/journey'
- require './lib/journey_history'
-
-class MaxTopUpError < StandardError
-  def initialize
-    super("Maximum top up is 50")
-  end
-end
-
-class BalanceBelowRequiredError < StandardError
-  def initialize
-    super("Please top up")
-  end
-end
+require './lib/journey_history'
+require './lib/errors'
 
 class Oyster
 
@@ -53,12 +42,12 @@ class Oyster
     unless @journey.nil?
       tap_out(nil)
     end
-    @journey  = Journey.new(start_zone)
+    @journey  = Journey.new(start_zone: start_zone)
   end
 
   def end_journey(end_zone)
     if @journey.nil?
-      @journey = Journey.new(nil)
+      @journey = Journey.new(start_zone: nil)
     end
     @journey.end_journey(end_zone)
   end

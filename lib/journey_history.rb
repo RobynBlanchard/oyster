@@ -1,8 +1,6 @@
 class JourneyHistory
-  
-  PENALTY_FARE = 5
 
-  attr_accessor :journeys
+  attr_reader :journeys
 
   def initialize(journeys=[])
     @journeys = journeys
